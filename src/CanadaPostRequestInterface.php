@@ -12,4 +12,12 @@ interface CanadaPostRequestInterface {
    */
   public function setConfig(array $configuration);
 
+  /**
+   * Returns authentication array for a request.
+   *
+   * @return array
+   *   An array of authentication parameters.
+   */
+  public function getAuth();
+
 }

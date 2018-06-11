@@ -1,0 +1,16 @@
+canadapost_default_box:
+  remote_id: '01'
+  label: 'Canada Post'
+  dimensions:
+    length: 30
+    width: 25
+    height: 10
+    unit: 'mm'
+  weight:
+    number: 30
+    unit: 'kg'
+  shipping_method: 'canadapost'
+
+commerce_package_type:
+  class: \Drupal\commerce_shipping\Plugin\Commerce\PackageType\PackageType
+  deriver: \Drupal\commerce_shipping\Plugin\Deriver\PackageTypeDeriver

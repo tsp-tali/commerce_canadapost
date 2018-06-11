@@ -12,25 +12,17 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * @CommerceShippingMethod(
  *  id = "canadapost",
- *  label = @Translation("CanadaPost"),
+ *  label = @Translation("Canada Post"),
  *  services = {
- *    "_01" = @translation("CanadaPost Next Day Air"),
- *    "_02" = @translation("CanadaPost Second Day Air"),
- *    "_03" = @translation("CanadaPost Ground"),
- *    "_07" = @translation("CanadaPost Worldwide Express"),
- *    "_08" = @translation("CanadaPost Worldwide Expedited"),
- *    "_11" = @translation("CanadaPost Standard"),
- *    "_12" = @translation("CanadaPost Three-Day Select"),
- *    "_13" = @translation("Next Day Air Saver"),
- *    "_14" = @translation("CanadaPost Next Day Air Early AM"),
- *    "_54" = @translation("CanadaPost Worldwide Express Plus"),
- *    "_59" = @translation("CanadaPost Second Day Air AM"),
- *    "_65" = @translation("CanadaPost Saver"),
- *    "_70" = @translation("CanadaPost Access Point Economy")
+ *    "DOM.EP" = @translation("Expedited Parcel"),
+ *    "DOM.RP" = @translation("Regular Parcel"),
+ *    "DOM.PC" = @translation("Priority"),
+ *    "DOM.XP" = @translation("Xpresspost")
  *   }
  * )
  */
 class CanadaPost extends ShippingMethodBase {
+
   /**
    * @var \Drupal\commerce_canadapost\CanadaPostRateRequest
    */
@@ -47,44 +39,13 @@ class CanadaPost extends ShippingMethodBase {
    *   The plugin implementation definition.
    * @param \Drupal\commerce_shipping\PackageTypeManagerInterface $packageTypeManager
    *   The package type manager.
-   *   The rate request service.
    * @param \Drupal\commerce_canadapost\CanadaPostRequestInterface $canadapost_rate_service
+   *   The rate request service.
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $packageTypeManager, CanadaPostRequestInterface $canadapost_rate_service) {
-    // Rewrite the service keys to be integers.
-    $plugin_definition = $this->preparePluginDefinition($plugin_definition);
-
     parent::__construct($configuration, $plugin_id, $plugin_definition, $packageTypeManager);
     $this->canadapost_rate_service = $canadapost_rate_service;
     $this->canadapost_rate_service->setConfig($configuration);
-  }
-
-  /**
-   * Prepares the service array keys to support integer values.
-   *
-   * See https://www.drupal.org/node/2904467 for more information.
-   * todo: Remove once core issue has been addressed.
-   *
-   * @param array $plugin_definition
-   *   The plugin definition provided to the class.
-   *
-   * @return array
-   *   The prepared plugin definition.
-   */
-  private function preparePluginDefinition(array $plugin_definition) {
-    // Cache and unset the parsed plugin definitions for services.
-    $services = $plugin_definition['services'];
-    unset($plugin_definition['services']);
-
-    // Loop over each service definition and redefine them with
-    // integer keys that match the CanadaPost API.
-    foreach ($services as $key => $service) {
-      // Remove the "_" from the service key.
-      $key_trimmed = str_replace('_', '', $key);
-      $plugin_definition['services'][$key_trimmed] = $service;
-    }
-
-    return $plugin_definition;
   }
 
   /**
@@ -105,19 +66,16 @@ class CanadaPost extends ShippingMethodBase {
    */
   public function defaultConfiguration() {
     return [
-      'api_information' => [
-        'access_key' => '',
-        'user_id' => '',
-        'password' => '',
-        'mode' => 'test',
-      ],
-      'rate_options' => [
-        'rate_type' => 0,
-      ] ,
-      'options' => [
-        'log' => [],
-      ],
-    ] + parent::defaultConfiguration();
+        'api_information' => [
+          'username' => '',
+          'password' => '',
+          'customer_number' => '',
+          'mode' => 'test',
+        ],
+        'options' => [
+          'log' => [],
+        ],
+      ] + parent::defaultConfiguration();
   }
 
   /**
@@ -129,21 +87,15 @@ class CanadaPost extends ShippingMethodBase {
     $form['api_information'] = [
       '#type' => 'details',
       '#title' => $this->t('API information'),
-      '#description' => $this->isConfigured() ? $this->t('Update your CanadaPost API information.') : $this->t('Fill in your CanadaPost API information.'),
+      '#description' => $this->isConfigured() ? $this->t('Update your Canada Post API information.') : $this->t('Fill in your Canada Post API information.'),
       '#weight' => $this->isConfigured() ? 10 : -10,
       '#open' => !$this->isConfigured(),
     ];
 
-    $form['api_information']['access_key'] = [
+    $form['api_information']['username'] = [
       '#type' => 'textfield',
-      '#title' => t('Access Key'),
-      '#default_value' => $this->configuration['api_information']['access_key'],
-      '#required' => TRUE,
-    ];
-    $form['api_information']['user_id'] = [
-      '#type' => 'textfield',
-      '#title' => t('User ID'),
-      '#default_value' => $this->configuration['api_information']['user_id'],
+      '#title' => t('Username'),
+      '#default_value' => $this->configuration['api_information']['username'],
       '#required' => TRUE,
     ];
 
@@ -151,6 +103,13 @@ class CanadaPost extends ShippingMethodBase {
       '#type' => 'textfield',
       '#title' => t('Password'),
       '#default_value' => $this->configuration['api_information']['password'],
+      '#required' => TRUE,
+    ];
+
+    $form['api_information']['customer_number'] = [
+      '#type' => 'textfield',
+      '#title' => t('Customer Number'),
+      '#default_value' => $this->configuration['api_information']['customer_number'],
       '#required' => TRUE,
     ];
 
@@ -165,27 +124,10 @@ class CanadaPost extends ShippingMethodBase {
       '#default_value' => $this->configuration['api_information']['mode'],
     ];
 
-    $form['rate_options'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Rate options'),
-      '#description' => $this->t('Options to pass during rate requests.'),
-    ];
-
-    $form['rate_options']['rate_type'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Rate Type'),
-      '#description' => $this->t('Choose between negotiated and standard rates.'),
-      '#options' => [
-        0 => $this->t('Standard Rates'),
-        1 => $this->t('Negotiated Rates'),
-      ],
-      '#default_value' => $this->configuration['rate_options']['rate_type'],
-    ];
-
     $form['options'] = [
       '#type' => 'details',
-      '#title' => $this->t('CanadaPost Options'),
-      '#description' => $this->t('Additional options for CanadaPost'),
+      '#title' => $this->t('Canada Post Options'),
+      '#description' => $this->t('Additional options for Canada Post'),
     ];
     $form['options']['log'] = [
       '#type' => 'checkboxes',
@@ -207,11 +149,10 @@ class CanadaPost extends ShippingMethodBase {
     if (!$form_state->getErrors()) {
       $values = $form_state->getValue($form['#parents']);
 
-      $this->configuration['api_information']['access_key'] = $values['api_information']['access_key'];
-      $this->configuration['api_information']['user_id'] = $values['api_information']['user_id'];
+      $this->configuration['api_information']['username'] = $values['api_information']['username'];
       $this->configuration['api_information']['password'] = $values['api_information']['password'];
+      $this->configuration['api_information']['customer_number'] = $values['api_information']['customer_number'];
       $this->configuration['api_information']['mode'] = $values['api_information']['mode'];
-      $this->configuration['rate_options']['rate_type'] = $values['rate_options']['rate_type'];
       $this->configuration['options']['log'] = $values['options']['log'];
 
     }
@@ -240,7 +181,7 @@ class CanadaPost extends ShippingMethodBase {
   }
 
   /**
-   * Determine if we have the minimum information to connect to CanadaPost.
+   * Determine if we have the minimum information to connect to Canada Post.
    *
    * @return bool
    *   TRUE if there is enough information to connect, FALSE otherwise.
@@ -249,9 +190,9 @@ class CanadaPost extends ShippingMethodBase {
     $api_information = $this->configuration['api_information'];
 
     return (
-      !empty($api_information['access_key'])
-      && !empty($api_information['user_id'])
-      && !empty($api_information['password'])
+      !empty($api_information['username'])
+      && !empty($api_information['password']
+        && !empty($api_information['customer_number']))
     );
   }
 
