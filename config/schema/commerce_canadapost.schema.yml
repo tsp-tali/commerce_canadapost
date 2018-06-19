@@ -1,6 +1,6 @@
 commerce_canadapost.settings:
   type: config_object
-  label: 'Amazon MWS order settings'
+  label: 'Canada Post API settings'
   mapping:
     api:
       type: mapping
