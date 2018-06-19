@@ -1,0 +1,6 @@
+services:
+  commerce_canadapost.commands:
+    class: \Drupal\commerce_canadapost\Commands\Commands
+    arguments: ['@config.factory', '@logger.factory']
+    tags:
+      - { name: drush.command }

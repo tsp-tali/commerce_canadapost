@@ -1,0 +1,17 @@
+commerce_canadapost.settings:
+  type: config_object
+  label: 'Canada Post API settings'
+  mapping:
+    api:
+      type: mapping
+      label: 'Information required for connecting to the API'
+      mapping:
+        customer_number:
+          type: string
+          label: 'Customer number'
+        username:
+          type: string
+          label: 'Username'
+        password:
+          type: string
+          label: 'Password'
