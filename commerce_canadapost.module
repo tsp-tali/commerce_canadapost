@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * @file
+ * Provides functionality for the Commerce Canada Post module.
+ */
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Constants.
+ */
+
+/**
+ * The name of the logger channel to use throughout this module.
+ */
+const COMMERCE_CANADAPOST_LOGGER_CHANNEL = 'commerce_canadapost';
+
+/**
+ * Hooks.
+ */
+
+/**
+ * Implements hook_entity_base_field_info().
+ *
+ * Adds a field to the shipment entity for holding the tracking PIN number.
+ */
+function commerce_canadapost_entity_base_field_info(EntityTypeInterface $type) {
+  if ($type->id() !== 'commerce_shipment') {
+    return;
+  }
+
+  $fields = [];
+
+  $fields['canada_post_tracking_pin'] = BaseFieldDefinition::create('string')
+    ->setLabel(t('Canada Post PIN'))
+    ->setDescription(t('The tracking PIN for the shipment.'))
+    ->setDisplayOptions('form', [
+      'type' => 'string_textfield',
+      'weight' => 0,
+    ])
+    ->setDisplayConfigurable('view', TRUE)
+    ->setDisplayConfigurable('form', TRUE);
+
+  return $fields;
+}
