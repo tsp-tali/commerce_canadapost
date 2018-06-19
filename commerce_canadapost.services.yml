@@ -1,0 +1,4 @@
+services:
+  commerce_canadapost.canadapost_rate_request:
+    class: Drupal\commerce_canadapost\CanadaPostRateRequest
+    arguments: []
