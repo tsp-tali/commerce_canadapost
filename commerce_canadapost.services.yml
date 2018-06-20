@@ -2,3 +2,7 @@ services:
   commerce_canadapost.canadapost_rate_request:
     class: Drupal\commerce_canadapost\CanadaPostRateRequest
     arguments: []
+
+  commerce_canadapost.tracking_api:
+    class: Drupal\commerce_canadapost\Api\TrackingService
+    arguments: ['@config.factory', '@logger.factory']
