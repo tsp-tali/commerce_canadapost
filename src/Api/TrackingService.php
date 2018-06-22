@@ -2,6 +2,7 @@
 
 namespace Drupal\commerce_canadapost\Api;
 
+use CanadaPost\Exception\ClientException;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use CanadaPost\Tracking;
@@ -17,7 +18,7 @@ class TrackingService implements TrackingServiceInterface {
    * @var \Drupal\Core\Config\Config
    */
   protected $config;
-  
+
   /**
    * The logger channel factory.
    *
@@ -64,7 +65,7 @@ class TrackingService implements TrackingServiceInterface {
       return;
     }
 
-    // return the full response for now; we need to find a way to test with a
+    // Return the full response for now; we need to find a way to test with a
     // real shipment that does not return simply 'No Pin History'.
     return $tracking_summary;
   }
