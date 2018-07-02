@@ -20,6 +20,11 @@
             "services": {
                 "drush.services.yml": "^9"
             }
+        },
+        "patches": {
+            "drupal/commerce_shipping": {
+                "Add Shipments tab to Order page": "https://www.drupal.org/files/issues/2018-06-27/commerce_shipping-shipments-tab-2981945-2.patch"
+            }
         }
     }
 }

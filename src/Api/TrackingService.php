@@ -45,15 +45,16 @@ class TrackingService implements TrackingServiceInterface {
   /**
    * {@inheritdoc}
    */
-  public function fetchTrackingNumber($tracking_pin) {
+  public function fetchTrackingSummary($tracking_pin) {
     $config = [
       'username' => $this->config->get('api.username'),
       'password' => $this->config->get('api.password'),
+      'customer_number' => $this->config->get('api.customer_number'),
     ];
 
     try {
       $tracking = new Tracking($config);
-      $tracking_summary = $tracking->getSummary($tracking_pin);
+      $response = $tracking->getSummary($tracking_pin);
     }
     catch (ClientException $exception) {
       $message = sprintf(
@@ -65,9 +66,24 @@ class TrackingService implements TrackingServiceInterface {
       return;
     }
 
-    // Return the full response for now; we need to find a way to test with a
-    // real shipment that does not return simply 'No Pin History'.
-    return $tracking_summary;
+    return $this->parseResponse($response);
+  }
+
+  /**
+   * Parse results from Canada Post API into ShippingRates.
+   *
+   * @param array $response
+   *   The response from the Canada Post API Rating service.
+   *
+   * @return \Drupal\commerce_shipping\ShippingRate[]
+   *   The Canada Post shipping rates.
+   */
+  private function parseResponse(array $response) {
+    if (!empty($response['tracking-summary']['pin-summary'])) {
+      return $response['tracking-summary']['pin-summary'];
+    }
+
+    return [];
   }
 
 }

@@ -93,7 +93,6 @@ class RatingService implements RatingServiceInterface {
       return;
     }
 
-
     return $this->parseResponse($response);
   }
 

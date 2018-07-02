@@ -38,23 +38,4 @@ class Commands extends DrushCommands {
     $this->ratingApi = $service_api;
   }
 
-  /**
-   * Fetch the tracking number for the given tracking PIN.
-   *
-   * @param string $tracking_pin
-   *   The tracking PIN for which to fetch the tracking number.
-   *
-   * @command commerce-canadapost-tracking-number
-   *
-   * @usage commerce-cp-tn 1234567
-   *   Fetch the tracking number for the 1234567 tracking PIN.
-   *
-   * @aliases commerce-cp-tn
-   */
-  public function fetchTrackingNumber($tracking_pin) {
-    $tracking_summary = $this->trackingApi->fetchTrackingNumber($tracking_pin);
-
-    $this->output->writeln(var_export($tracking_summary, TRUE));
-  }
-
 }

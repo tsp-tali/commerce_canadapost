@@ -5,8 +5,8 @@
  * Provides functionality for the Commerce Canada Post module.
  */
 
-use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Constants.
@@ -22,26 +22,77 @@ const COMMERCE_CANADAPOST_LOGGER_CHANNEL = 'commerce_canadapost';
  */
 
 /**
- * Implements hook_entity_base_field_info().
- *
- * Adds a field to the shipment entity for holding the tracking PIN number.
+ * Implements hook_form_FORM_ID_alter().
  */
-function commerce_canadapost_entity_base_field_info(EntityTypeInterface $type) {
-  if ($type->id() !== 'commerce_shipment') {
+function commerce_canadapost_form_commerce_shipment_canadapost_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  array_unshift($form['actions']['submit']['#submit'],'commerce_canadapost_commerce_shipment_form_submit');
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function commerce_canadapost_form_commerce_checkout_flow_multistep_default_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if(!isset($form['shipping_information']['shipments'])) {
     return;
   }
 
-  $fields = [];
+  foreach ($form['shipping_information']['shipments'] as &$shipment) {
+    $fields = [
+      'field_actual_delivery',
+      'field_attempted_delivery',
+      'field_expected_delivery',
+      'field_mailed_on',
+    ];
+    foreach ($fields as $field) {
+      if (isset($shipment[$field])) {
+        $shipment[$field]['#access'] = FALSE;
+      }
+    }
+  }
+}
 
-  $fields['canada_post_tracking_pin'] = BaseFieldDefinition::create('string')
-    ->setLabel(t('Canada Post PIN'))
-    ->setDescription(t('The tracking PIN for the shipment.'))
-    ->setDisplayOptions('form', [
-      'type' => 'string_textfield',
-      'weight' => 0,
-    ])
-    ->setDisplayConfigurable('view', TRUE)
-    ->setDisplayConfigurable('form', TRUE);
+/**
+ * Functions.
+ */
 
-  return $fields;
+/**
+ * Provides a submit handler for the 'Save commerce shipment' button.
+ */
+function commerce_canadapost_commerce_shipment_form_submit($form, FormStateInterface $form_state) {
+  if (empty($form_state->getValue('tracking_code')[0]['value'])) {
+    return;
+  }
+
+  /** @var \Drupal\commerce_shipping\Entity\Shipment $shipment */
+  $shipment = $form_state->getFormObject()->getEntity();
+  $current_tracking_pin = $shipment->get('tracking_code')->value;
+  $submitted_tracking_pin = $form_state->getValue('tracking_code')[0]['value'];
+  if ($submitted_tracking_pin === $current_tracking_pin) {
+    return;
+  }
+
+  /** @var \Drupal\commerce_canadapost\Api\TrackingService $tracking_service */
+  $tracking_service = \Drupal::service('commerce_canadapost.tracking_api');
+  $tracking_summary = $tracking_service->fetchTrackingSummary($submitted_tracking_pin);
+
+  $values = [];
+  if (!empty($tracking_summary['actual-delivery-date'])) {
+    $values['field_actual_delivery'][0]['value'] = new DrupalDateTime($tracking_summary['actual-delivery-date']);
+  }
+
+  if (!empty($tracking_summary['attempted-date'])) {
+    $values['field_attempted_delivery'][0]['value'] = new DrupalDateTime($tracking_summary['attempted-date']);
+  }
+
+  if (!empty($tracking_summary['expected-delivery-date'])) {
+    $values['field_expected_delivery'][0]['value'] = new DrupalDateTime($tracking_summary['expected-delivery-date']);
+  }
+
+  if (!empty($tracking_summary['mailed-on-date'])) {
+    $values['field_mailed_on'][0]['value'] = new DrupalDateTime($tracking_summary['mailed-on-date']);
+  }
+
+  $form_state->setValues($values);
+  $shipment->set('tracking_code', $submitted_tracking_pin);
+
 }
