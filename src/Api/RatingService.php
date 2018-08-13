@@ -8,7 +8,6 @@ use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\ShippingRate;
 use Drupal\commerce_shipping\ShippingService;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use CanadaPost\Rating;
 
@@ -27,16 +26,9 @@ class RatingService implements RatingServiceInterface {
   /**
    * The logger channel factory.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   * @var \Drupal\Core\Logger\LoggerChannelInterface
    */
   protected $logger;
-
-  /**
-   * The entity type manager.
-   *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
-   */
-  protected $entityTypeManager;
 
   /**
    * Constructs a new TrackingService object.
@@ -45,32 +37,29 @@ class RatingService implements RatingServiceInterface {
    *   The configuration object factory.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
    *   The logger channel factory.
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
-   *   The entity type manager.
    */
   public function __construct(
     ConfigFactoryInterface $config_factory,
-    LoggerChannelFactoryInterface $logger_factory,
-    EntityTypeManagerInterface $entity_type_manager
+    LoggerChannelFactoryInterface $logger_factory
   ) {
     $this->config = $config_factory->get('commerce_canadapost.settings');
     $this->logger = $logger_factory->get(COMMERCE_CANADAPOST_LOGGER_CHANNEL);
-    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getRates(ShipmentInterface $shipment) {
-    $order_id = $shipment->order_id->target_id;
-    $order_storage = $this->entityTypeManager->getStorage('commerce_order');
-    $order = $order_storage->load($order_id);
+  public function getRates(ShipmentInterface $shipment, array $options) {
+    $order = $shipment->getOrder();
     $origin_postal_code = !empty($this->config->get('api.rate.origin_postal_code'))
       ? $this->config->get('api.rate.origin_postal_code')
       : $order->getStore()
         ->getAddress()
         ->getPostalCode();
-    $postal_code = $shipment->getShippingProfile()->address->postal_code;
+    $postal_code = $shipment->getShippingProfile()
+      ->get('address')
+      ->first()
+      ->getPostalCode();
     $weight = $shipment->getWeight()->convert('kg')->getNumber();
 
     $config = [
@@ -82,7 +71,7 @@ class RatingService implements RatingServiceInterface {
 
     try {
       $request = new Rating($config);
-      $response = $request->getRates($origin_postal_code, $postal_code, $weight);
+      $response = $request->getRates($origin_postal_code, $postal_code, $weight, $options);
     }
     catch (ClientException $exception) {
       $message = sprintf(

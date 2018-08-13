@@ -25,14 +25,14 @@ const COMMERCE_CANADAPOST_LOGGER_CHANNEL = 'commerce_canadapost';
  * Implements hook_form_FORM_ID_alter().
  */
 function commerce_canadapost_form_commerce_shipment_canadapost_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  array_unshift($form['actions']['submit']['#submit'],'commerce_canadapost_commerce_shipment_form_submit');
+  array_unshift($form['actions']['submit']['#submit'], 'commerce_canadapost_commerce_shipment_form_submit');
 }
 
 /**
  * Implements hook_form_FORM_ID_alter().
  */
 function commerce_canadapost_form_commerce_checkout_flow_multistep_default_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if(!isset($form['shipping_information']['shipments'])) {
+  if (!isset($form['shipping_information']['shipments'])) {
     return;
   }
 

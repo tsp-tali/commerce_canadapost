@@ -71,19 +71,19 @@ class CanadaPost extends ShippingMethodBase {
    */
   public function defaultConfiguration() {
     return [
-      'api_information' => [
-        'username' => '',
-        'password' => '',
-        'customer_number' => '',
-        'mode' => 'test',
-      ],
-      'shipping_information' => [
-        'origin_postal_code' => '',
-      ],
-      'options' => [
-        'log' => [],
-      ],
-    ] + parent::defaultConfiguration();
+        'api_information' => [
+          'username' => '',
+          'password' => '',
+          'customer_number' => '',
+          'mode' => 'test',
+        ],
+        'shipping_information' => [
+          'origin_postal_code' => '',
+        ],
+        'options' => [
+          'log' => [],
+        ],
+      ] + parent::defaultConfiguration();
   }
 
   /**
