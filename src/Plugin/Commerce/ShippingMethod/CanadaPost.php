@@ -17,10 +17,29 @@ use CanadaPost\Rating;
  *  id = "canadapost",
  *  label = @Translation("Canada Post"),
  *  services = {
- *    "DOM.EP" = @translation("Expedited Parcel"),
- *    "DOM.RP" = @translation("Regular Parcel"),
- *    "DOM.PC" = @translation("Priority"),
- *    "DOM.XP" = @translation("Xpresspost")
+ *    "DOM.EP" = @Translation("Expedited Parcel"),
+ *    "DOM.RP" = @Translation("Regular Parcel"),
+ *    "DOM.PC" = @Translation("Priority"),
+ *    "DOM.XP" = @Translation("Xpresspost"),
+ *    "DOM.XP.CERT" = @Translation("Xpresspost Certified"),
+ *    "DOM.LIB" = @Translation("Library Materials"),
+ *    "USA.EP" = @Translation("Expedited Parcel USA"),
+ *    "USA.PW.ENV" = @Translation("Priority Worldwide Envelope USA"),
+ *    "USA.PW.PAK" = @Translation("Priority Worldwide pak USA"),
+ *    "USA.PW.PARCEL" = @Translation("Priority Worldwide Parcel USA"),
+ *    "USA.SP.AIR" = @Translation("Small Packet USA Air"),
+ *    "USA.TP" = @Translation("Tracked Packet – USA"),
+ *    "USA.TP.LVM" = @Translation("Tracked Packet – USA (LVM) (large volume mailers)"),
+ *    "USA.XP" = @Translation("Xpresspost USA"),
+ *    "INT.XP" = @Translation("Xpresspost International"),
+ *    "INT.IP.AIR" = @Translation("International Parcel Air"),
+ *    "INT.IP.SURF" = @Translation("International Parcel Surface"),
+ *    "INT.PW.ENV" = @Translation("Priority Worldwide Envelope Int’l"),
+ *    "INT.PW.PAK" = @Translation("Priority Worldwide pak Int’l"),
+ *    "INT.PW.PARCEL" = @Translation("Priority Worldwide parcel Int’l"),
+ *    "INT.SP.AIR" = @Translation("Small Packet International Air"),
+ *    "INT.SP.SURF" = @Translation("Small Packet International Surface"),
+ *    "INT.TP" = @Translation("Tracked Packet – International"),
  *   }
  * )
  */
@@ -205,10 +224,14 @@ class CanadaPost extends ShippingMethodBase {
       return [];
     }
 
-    return $this->ratingService->getRates($shipment, [
-      'debug' => FALSE,
-      'option_codes' => $this->configuration['option_codes'],
-    ]);
+    return $this->ratingService->getRates(
+      $shipment,
+      [
+        'debug' => FALSE,
+        'option_codes' => $this->configuration['option_codes'],
+        'service_codes' => $this->configuration['services'],
+      ]
+    );
   }
 
   /**
