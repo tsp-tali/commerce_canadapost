@@ -6,7 +6,9 @@ use Drupal\commerce_canadapost\Api\RatingServiceInterface;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\PackageTypeManagerInterface;
 use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodBase;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use CanadaPost\Rating;
 
@@ -46,6 +48,13 @@ use CanadaPost\Rating;
 class CanadaPost extends ShippingMethodBase {
 
   /**
+   * The Canada Post configuration object.
+   *
+   * @var \Drupal\Core\Config\Config
+   */
+  protected $config;
+
+  /**
    * The rating service.
    *
    * @var \Drupal\commerce_canadapost\Api\RatingServiceInterface
@@ -63,12 +72,14 @@ class CanadaPost extends ShippingMethodBase {
    *   The plugin implementation definition.
    * @param \Drupal\commerce_shipping\PackageTypeManagerInterface $package_type_manager
    *   The package type manager.
+   * @param ConfigFactoryInterface $config_factory
+   *   The logger channel factory.
    * @param \Drupal\commerce_canadapost\Api\RatingServiceInterface $rating_service
    *   The Canada Post Rating service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $package_type_manager, RatingServiceInterface $rating_service) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $package_type_manager, ConfigFactoryInterface $config_factory, RatingServiceInterface $rating_service) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $package_type_manager);
-
+    $this->config = $config_factory->get('commerce_canadapost.settings');
     $this->ratingService = $rating_service;
   }
 
@@ -81,8 +92,8 @@ class CanadaPost extends ShippingMethodBase {
       $plugin_id,
       $plugin_definition,
       $container->get('plugin.manager.commerce_package_type'),
-      $container->get('commerce_canadapost.rating_api'),
-      $container->get('entity_type.manager')
+      $container->get('config.factory'),
+      $container->get('commerce_canadapost.rating_api')
     );
   }
 
@@ -91,17 +102,9 @@ class CanadaPost extends ShippingMethodBase {
    */
   public function defaultConfiguration() {
     return [
-        'api_information' => [
-          'username' => '',
-          'password' => '',
-          'customer_number' => '',
-          'mode' => 'test',
-        ],
         'shipping_information' => [
           'origin_postal_code' => '',
-        ],
-        'options' => [
-          'log' => [],
+          'option_codes' => [],
         ],
       ] + parent::defaultConfiguration();
   }
@@ -112,81 +115,46 @@ class CanadaPost extends ShippingMethodBase {
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
 
-    $form['api_information'] = [
+    $form['shipping_information'] = [
       '#type' => 'details',
-      '#title' => $this->t('API information'),
-      '#description' => $this->isConfigured() ? $this->t('Update your Canada Post API information.') : $this->t('Fill in your Canada Post API information.'),
-      '#weight' => $this->isConfigured() ? 10 : -10,
-      '#open' => !$this->isConfigured(),
-    ];
-
-    $form['api_information']['username'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Username'),
-      '#default_value' => $this->configuration['api_information']['username'],
-      '#required' => TRUE,
-    ];
-
-    $form['api_information']['password'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Password'),
-      '#default_value' => $this->configuration['api_information']['password'],
-      '#required' => TRUE,
-    ];
-
-    $form['api_information']['customer_number'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Customer Number'),
-      '#default_value' => $this->configuration['api_information']['customer_number'],
-      '#required' => TRUE,
-    ];
-
-    $form['api_information']['mode'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Mode'),
-      '#description' => $this->t('Choose whether to use the test or live mode.'),
-      '#options' => [
-        'test' => $this->t('Test'),
-        'live' => $this->t('Live'),
-      ],
-      '#default_value' => $this->configuration['api_information']['mode'],
-    ];
-
-    $form['api_information']['origin_postal_code'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Origin postal code'),
-      '#description' => $this->t("Enter the postal code that your shipping rates will originate. If left empty, shipping rates will be rated from your store's postal code."),
-      '#default_value' => $this->configuration['shipping_information']['origin_postal_code'],
-    ];
-
-    $form['option_codes'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Shipping rate options codes'),
+      '#title' => $this->t('Shipping rate modifications'),
       '#open' => TRUE,
     ];
 
-    $form['option_codes']['codes'] = [
+    $form['shipping_information']['origin_postal_code'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Origin postal code'),
+      '#default_value' => $this->configuration['shipping_information']['origin_postal_code'],
+      '#description' => $this->t("Enter the postal code that your shipping rates will originate. If left empty, shipping rates will be rated from your store's postal code."),
+      '#required' => TRUE,
+    ];
+
+    $form['shipping_information']['option_codes'] = [
       '#type' => 'checkboxes',
+      '#title' => $this->t('Options Codes'),
       '#options' => Rating::getOptionCodes(),
-      '#default_value' => $this->configuration['option_codes'],
+      '#default_value' => $this->configuration['shipping_information']['option_codes'],
       '#description' => $this->t(
         "Select which options to add when calculating the shipping rates. <strong>NOTE:</strong> Some options conflict with each other (eg. PA18, PA19 and DNS), so be sure to check the logs if the rates fail to load on checkout as the Canada Post API can't currently handle the conflicts."
       ),
     ];
 
-    $form['options'] = [
+    $form['api'] = [
       '#type' => 'details',
-      '#title' => $this->t('Canada Post Options'),
-      '#description' => $this->t('Additional options for Canada Post'),
+      '#title' => $this->t('API authentication'),
+      '#open' => TRUE,
     ];
-    $form['options']['log'] = [
-      '#type' => 'checkboxes',
-      '#title' => $this->t('Log the following messages for debugging'),
-      '#options' => [
-        'request' => $this->t('API request messages'),
-        'response' => $this->t('API response messages'),
-      ],
-      '#default_value' => $this->configuration['options']['log'],
+    $form['api']['info'] = [
+      '#type' => 'markup',
+      '#markup' => $this->t(
+        'Please @action your @link.',
+        [
+          '@action' => $this->apiIsConfigured() ? 'review' : 'enter',
+          '@link' => Link::createFromRoute(
+            $this->t('Canada Post API settings'),
+            'commerce_canadapost.settings_form')->toString(),
+        ]
+      )
     ];
 
     return $form;
@@ -198,13 +166,9 @@ class CanadaPost extends ShippingMethodBase {
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $values = $form_state->getValue($form['#parents']);
 
-    $this->configuration['api_information']['username'] = $values['api_information']['username'];
-    $this->configuration['api_information']['password'] = $values['api_information']['password'];
-    $this->configuration['api_information']['customer_number'] = $values['api_information']['customer_number'];
-    $this->configuration['api_information']['mode'] = $values['api_information']['mode'];
-    $this->configuration['api_information']['origin_postal_code'] = $values['api_information']['origin_postal_code'];
-    $this->configuration['option_codes'] = $values['option_codes']['codes'];
-    $this->configuration['options']['log'] = $values['options']['log'];
+    $this->configuration['shipping_information']['origin_postal_code'] = $values['shipping_information']['origin_postal_code'];
+    // Remove the empty options codes.
+    $this->configuration['shipping_information']['option_codes'] = array_diff($values['shipping_information']['option_codes'], ['0']);
 
     return parent::submitConfigurationForm($form, $form_state);
   }
@@ -228,7 +192,7 @@ class CanadaPost extends ShippingMethodBase {
       $shipment,
       [
         'debug' => FALSE,
-        'option_codes' => $this->configuration['option_codes'],
+        'option_codes' => $this->configuration['shipping_information']['option_codes'],
         'service_codes' => $this->configuration['services'],
       ]
     );
@@ -241,7 +205,7 @@ class CanadaPost extends ShippingMethodBase {
    *   TRUE if there is enough information to connect, FALSE otherwise.
    */
   protected function isConfigured() {
-    $api_information = $this->configuration['api_information'];
+    $api_information = $this->config->get('api');
 
     return (
       !empty($api_information['username'])

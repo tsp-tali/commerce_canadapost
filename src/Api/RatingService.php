@@ -3,6 +3,7 @@
 namespace Drupal\commerce_canadapost\Api;
 
 use CanadaPost\Exception\ClientException;
+use Drupal\commerce_canadapost\Plugin\Commerce\ShippingMethod\CanadaPost;
 use Drupal\commerce_price\Price;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\ShippingRate;
@@ -49,10 +50,10 @@ class RatingService implements RatingServiceInterface {
   /**
    * {@inheritdoc}
    */
-  public function getRates(ShipmentInterface $shipment, array $options) {
+  public function getRates(CanadaPost $canadaPost, ShipmentInterface $shipment, array $options) {
     $order = $shipment->getOrder();
-    $origin_postal_code = !empty($this->config->get('api.rate.origin_postal_code'))
-      ? $this->config->get('api.rate.origin_postal_code')
+    $origin_postal_code = !empty($canadaPost->getConfiguration()['shipping_information']['origin_postal_code'])
+      ? $canadaPost->getConfiguration()['shipping_information']['origin_postal_code']
       : $order->getStore()
         ->getAddress()
         ->getPostalCode();
@@ -66,6 +67,7 @@ class RatingService implements RatingServiceInterface {
       'username' => $this->config->get('api.username'),
       'password' => $this->config->get('api.password'),
       'customer_number' => $this->config->get('api.customer_number'),
+      'contract_id' => $this->config->get('api.contract_id'),
       'env' => $this->getEnvironmentMode(),
     ];
 

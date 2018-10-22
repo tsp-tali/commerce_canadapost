@@ -36,25 +36,30 @@ class SettingsForm extends ConfigFormBase {
       '#open' => TRUE,
     ];
 
-    $form['api']['api_customer_number'] = [
+    $form['api']['customer_number'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Customer number'),
       '#default_value' => $config->get('api.customer_number'),
       '#required' => TRUE,
     ];
-    $form['api']['api_username'] = [
+    $form['api']['username'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Username'),
       '#default_value' => $config->get('api.username'),
       '#required' => TRUE,
     ];
-    $form['api']['api_password'] = [
+    $form['api']['password'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Password'),
       '#default_value' => $config->get('api.password'),
       '#required' => TRUE,
     ];
-    $form['api']['api_mode'] = [
+    $form['api']['contract_id'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Contract ID'),
+      '#default_value' => $config->get('api.contract_id'),
+    ];
+    $form['api']['mode'] = [
       '#type' => 'select',
       '#title' => $this->t('Mode'),
       '#default_value' => $config->get('api.mode'),
@@ -64,11 +69,14 @@ class SettingsForm extends ConfigFormBase {
       ],
       '#required' => TRUE,
     ];
-    $form['api']['rate']['origin_postal_code'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Origin postal code'),
-      '#default_value' => $config->get('api.rate.origin_postal_code'),
-      '#description' => $this->t("Enter the postal code that your shipping rates will originate. If left empty, shipping rates will be rated from your store's postal code."),
+    $form['api']['log'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Log the following messages for debugging'),
+      '#options' => [
+        'request' => $this->t('API request messages'),
+        'response' => $this->t('API response messages'),
+      ],
+      '#default_value' => $config->get('api.log'),
     ];
 
     return parent::buildForm($form, $form_state);
@@ -80,11 +88,12 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this
       ->config('commerce_canadapost.settings')
-      ->set('api.customer_number', $form_state->getValue('api_customer_number'))
-      ->set('api.username', $form_state->getValue('api_username'))
-      ->set('api.password', $form_state->getValue('api_password'))
-      ->set('api.mode', $form_state->getValue('api_mode'))
-      ->set('api.rate.origin_postal_code', $form_state->getValue('origin_postal_code'))
+      ->set('api.customer_number', $form_state->getValue('customer_number'))
+      ->set('api.username', $form_state->getValue('username'))
+      ->set('api.password', $form_state->getValue('password'))
+      ->set('api.contract_id', $form_state->getValue('contract_id'))
+      ->set('api.mode', $form_state->getValue('mode'))
+      ->set('api.log', $form_state->getValue('log'))
       ->save();
 
     parent::submitForm($form, $form_state);

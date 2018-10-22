@@ -15,10 +15,18 @@ commerce_canadapost.settings:
         password:
           type: string
           label: 'Password'
-        rate:
+        contract_id:
+          type: string
+          label: 'Contract ID'
+        mode:
+          type: string
+          label: 'API Mode'
+        log:
           type: mapping
-          label: 'Ratings API settings'
           mapping:
-            origin_postal_code:
+            request:
               type: string
-              label: 'Origin postal code'
+              label: 'Log API Requests'
+            response:
+              type: string
+              label: 'Log API Responses'
