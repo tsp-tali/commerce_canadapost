@@ -189,6 +189,7 @@ class CanadaPost extends ShippingMethodBase {
     }
 
     return $this->ratingService->getRates(
+      $this,
       $shipment,
       [
         'debug' => FALSE,
@@ -204,7 +205,7 @@ class CanadaPost extends ShippingMethodBase {
    * @return bool
    *   TRUE if there is enough information to connect, FALSE otherwise.
    */
-  protected function isConfigured() {
+  protected function apiIsConfigured() {
     $api_information = $this->config->get('api');
 
     return (
