@@ -28,11 +28,15 @@ use GuzzleHttp\Psr7\Response;
 class CanadaPostRateRequestTest extends UnitTestCase {
 
   /**
+   * The Canada Post api service.
+   *
    * @var \Drupal\commerce_canadapost\Api\RatingServiceInterface
    */
   protected $ratingService;
 
   /**
+   * The mock shipment entity.
+   *
    * @var \Drupal\commerce_shipping\Entity\ShipmentInterface
    */
   protected $shipment;
@@ -80,7 +84,7 @@ class CanadaPostRateRequestTest extends UnitTestCase {
     ]);
     $rates = $this->ratingService->getRates($shipment, ['handler' => $mock_handler]);
 
-    // Test the parsed response
+    // Test the parsed response.
     foreach ($rates as $rate) {
       /* @var \Drupal\commerce_shipping\ShippingRate $rate */
       $this->assertInstanceOf('Drupal\commerce_shipping\ShippingRate', $rate);
@@ -127,4 +131,5 @@ class CanadaPostRateRequestTest extends UnitTestCase {
     // Return the mocked shipment object.
     return $shipment->reveal();
   }
+
 }

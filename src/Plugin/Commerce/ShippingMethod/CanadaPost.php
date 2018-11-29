@@ -72,7 +72,7 @@ class CanadaPost extends ShippingMethodBase {
    *   The plugin implementation definition.
    * @param \Drupal\commerce_shipping\PackageTypeManagerInterface $package_type_manager
    *   The package type manager.
-   * @param ConfigFactoryInterface $config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The logger channel factory.
    * @param \Drupal\commerce_canadapost\Api\RatingServiceInterface $rating_service
    *   The Canada Post Rating service.
@@ -102,11 +102,11 @@ class CanadaPost extends ShippingMethodBase {
    */
   public function defaultConfiguration() {
     return [
-        'shipping_information' => [
-          'origin_postal_code' => '',
-          'option_codes' => [],
-        ],
-      ] + parent::defaultConfiguration();
+      'shipping_information' => [
+        'origin_postal_code' => '',
+        'option_codes' => [],
+      ],
+    ] + parent::defaultConfiguration();
   }
 
   /**
@@ -154,7 +154,7 @@ class CanadaPost extends ShippingMethodBase {
             $this->t('Canada Post API settings'),
             'commerce_canadapost.settings_form')->toString(),
         ]
-      )
+      ),
     ];
 
     return $form;

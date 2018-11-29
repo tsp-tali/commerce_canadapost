@@ -94,5 +94,4 @@ function commerce_canadapost_commerce_shipment_form_submit($form, FormStateInter
 
   $form_state->setValues($values);
   $shipment->set('tracking_code', $submitted_tracking_pin);
-
 }
