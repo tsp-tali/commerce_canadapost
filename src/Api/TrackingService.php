@@ -23,7 +23,7 @@ class TrackingService extends RequestServiceBase implements TrackingServiceInter
 
     try {
       // Turn on output buffering if we are in test mode.
-      $test_mode = $api_settings['mode'] === 'test';
+      $test_mode = isset($api_settings['mode']) ? $api_settings['mode'] === 'test' : false;
       if ($test_mode) {
         ob_start();
       }
@@ -31,7 +31,7 @@ class TrackingService extends RequestServiceBase implements TrackingServiceInter
       $tracking = $this->getRequest($api_settings);
       $response = $tracking->getSummary($tracking_pin);
 
-      if ($api_settings['log']['request']) {
+      if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
         $response_output = var_export($response, TRUE);
         $message = sprintf(
           'Tracking request made for tracking pin: "%s". Response received: "%s".',
@@ -44,7 +44,7 @@ class TrackingService extends RequestServiceBase implements TrackingServiceInter
       $response = $this->parseResponse($response);
     }
     catch (ClientException $exception) {
-      if ($api_settings['log']['response']) {
+      if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
         $message = sprintf(
           'An error has been returned by the Canada Post shipment method when fetching the tracking summary for the tracking PIN "%s". The error was: "%s"',
           $tracking_pin,

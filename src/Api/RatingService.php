@@ -39,7 +39,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
 
     try {
       // Turn on output buffering if we are in test mode.
-      $test_mode = $api_settings['mode'] === 'test';
+      $test_mode = isset($api_settings['mode']) ? $api_settings['mode'] === 'test' : false;
       if ($test_mode) {
         ob_start();
       }
@@ -47,7 +47,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
       $rating = $this->getRequest($api_settings);
       $response = $rating->getRates($origin_postal_code, $postal_code, $weight, $options);
 
-      if ($api_settings['log']['request']) {
+      if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
         $response_output = var_export($response, TRUE);
         $message = sprintf(
           'Rating request made for order "%s". Response received: "%s".',
@@ -60,7 +60,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
       $response = $this->parseResponse($response);
     }
     catch (ClientException $exception) {
-      if ($api_settings['log']['response']) {
+      if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
         $message = sprintf(
           'An error has been returned by the Canada Post shipment method when fetching the shipping rates. The error was: "%s"',
           json_encode($exception->getResponseBody())
