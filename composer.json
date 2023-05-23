@@ -1,5 +1,5 @@
 {
-    "name": "drupal/commerce_canadapost",
+    "name": "darrylri/commerce_canadapost",
     "type": "drupal-module",
     "description": "A Drupal 8 module providing integration features with Canada Post and Commerce.",
     "keywords": ["Drupal"],
@@ -22,7 +22,7 @@
             }
         },
         "patches": {
-            "drupal/commerce_shipping": {
+            "darrylri/commerce_shipping": {
                 "Add Shipments tab to Order page": "https://www.drupal.org/files/issues/2018-06-27/commerce_shipping-shipments-tab-2981945-2.patch"
             }
         }
