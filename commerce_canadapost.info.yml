@@ -2,7 +2,6 @@ name: Commerce Canada Post
 type: module
 description: Canada Post Shipping Module for Drupal 8
 package: Commerce (shipping)
-core_version_requirement: ^9.2 || ^10
-
+core_version_requirement: ^8 || ^9 || ^10
 dependencies:
   - commerce_shipping
