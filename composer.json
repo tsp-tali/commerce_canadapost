@@ -9,8 +9,23 @@
         "issues": "https://www.drupal.org/project/issues/commerce_canadapost",
         "source": "http://cgit.drupalcode.org/commerce_canadapost"
     },
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "darrylri/php-canadapost-api",
+                "version": "0.2.4",
+                "type":"drupal-library",
+                "source": {
+                    "url": "https://github.com/darrylri/php-canadapost-api.git",
+                    "type": "git",
+                    "reference": "master"
+                }
+            }
+        }
+    ],
     "require": {
-        "drupal/commerce_shipping": "^8.2",
+        "drupal/commerce_shipping": "^2.0@rc",
         "openlss/lib-array2xml": "^0.5.1",
         "darrylri/php-canadapost-api": "^0.2.4"
     },
