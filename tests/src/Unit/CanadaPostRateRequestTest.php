@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\commerce_canadapost\Unit;
 
+use CanadaPost\Dimension;
 use CanadaPost\Exception\ClientException;
 use CanadaPost\Rating;
 use Psr\Http\Message\RequestInterface;
@@ -112,13 +113,18 @@ class CanadaPostRateRequestTest extends CanadaPostUnitTestBase {
       ->first()
       ->getPostalCode();
     $weight = $this->shipment->getWeight()->convert('kg')->getNumber();
+    $dimensions = new Dimension(
+      (int) $this->shipment->getPackageType()->getLength()->convert('mm')->getNumber(),
+      (int) $this->shipment->getPackageType()->getWidth()->convert('mm')->getNumber(),
+      (int) $this->shipment->getPackageType()->getHeight()->convert('mm')->getNumber()
+    );
 
     // Create the mock response that we will set for the getRates() function.
     $request = $this->prophesize(Rating::class);
     if ($set_request_status == 'failure') {
       $request_interface = $this->prophesize(RequestInterface::class);
       $request
-        ->getRates($origin_postal_code, $postal_code, $weight, [])
+        ->getRates($origin_postal_code, $postal_code, $weight, $dimensions, [])
         ->willThrow(new ClientException(
           'Exception!',
           'responseBody',
@@ -134,7 +140,7 @@ class CanadaPostRateRequestTest extends CanadaPostUnitTestBase {
         unset($response['price-quotes']);
       }
       $request
-        ->getRates($origin_postal_code, $postal_code, $weight, [])
+        ->getRates($origin_postal_code, $postal_code, $weight, $dimensions, [])
         ->willReturn($response);
     }
 

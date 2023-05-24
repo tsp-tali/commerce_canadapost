@@ -10,6 +10,7 @@ use Drupal\commerce_shipping\Plugin\Commerce\ShippingMethod\ShippingMethodBase;
 
 use Drupal\Core\Form\FormStateInterface;
 
+use Drupal\state_machine\WorkflowManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use CanadaPost\Rating;
 
@@ -73,20 +74,15 @@ class CanadaPost extends ShippingMethodBase {
    *   The plugin implementation definition.
    * @param \Drupal\commerce_shipping\PackageTypeManagerInterface $package_type_manager
    *   The package type manager.
+   * @param \Drupal\state_machine\WorkflowManagerInterface $workflow_manager
+   *   The workflow manager.
    * @param \Drupal\commerce_canadapost\UtilitiesService $utilities
    *   The Canada Post utilities service object.
    * @param \Drupal\commerce_canadapost\Api\RatingServiceInterface $rating_service
    *   The Canada Post Rating service.
    */
-  public function __construct(
-    array $configuration,
-    $plugin_id,
-    $plugin_definition,
-    PackageTypeManagerInterface $package_type_manager,
-    UtilitiesService $utilities,
-    RatingServiceInterface $rating_service
-  ) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $package_type_manager);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, PackageTypeManagerInterface $package_type_manager, WorkflowManagerInterface $workflow_manager, UtilitiesService $utilities, RatingServiceInterface $rating_service) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $package_type_manager, $workflow_manager);
 
     $this->utilities = $utilities;
     $this->ratingService = $rating_service;
@@ -101,6 +97,7 @@ class CanadaPost extends ShippingMethodBase {
       $plugin_id,
       $plugin_definition,
       $container->get('plugin.manager.commerce_package_type'),
+      $container->get('plugin.manager.workflow'),
       $container->get('commerce_canadapost.utilities_service'),
       $container->get('commerce_canadapost.rating_api')
     );
@@ -159,6 +156,13 @@ class CanadaPost extends ShippingMethodBase {
     ];
 
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getParentEntity() {
+    return $this->parentEntity;
   }
 
   /**

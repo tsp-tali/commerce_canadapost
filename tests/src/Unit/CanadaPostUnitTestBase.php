@@ -6,6 +6,8 @@ use Drupal\commerce_canadapost\Plugin\Commerce\ShippingMethod\CanadaPost;
 use Drupal\commerce_canadapost\UtilitiesService;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
+use Drupal\commerce_shipping\Entity\ShippingMethod;
+use Drupal\commerce_shipping\Entity\ShippingMethodInterface;
 use Drupal\commerce_shipping\Plugin\Commerce\PackageType\PackageTypeInterface;
 use Drupal\commerce_store\Entity\StoreInterface;
 use Drupal\physical\Length;
@@ -114,6 +116,7 @@ abstract class CanadaPostUnitTestBase extends UnitTestCase {
     $profile = $this->prophesize(ProfileInterface::class);
     $address_list = $this->prophesize(FieldItemListInterface::class);
     $address = $this->prophesize(AddressInterface::class);
+    $package_type = $this->prophesize(PackageTypeInterface::class);
 
     // Mock the address list to return a Canadian address.
     $address->getPostalCode()->willReturn('Y1A2C6');
@@ -125,6 +128,14 @@ abstract class CanadaPostUnitTestBase extends UnitTestCase {
 
     // Mock the shipments weight.
     $shipment->getWeight()->willReturn(new Weight(1000, 'g'));
+
+    $package_type->getHeight()->willReturn(new Length(10, 'in'));
+    $package_type->getLength()->willReturn(new Length(10, 'in'));
+    $package_type->getWidth()->willReturn(new Length(3, 'in'));
+    $package_type->getWeight()->willReturn(new Weight(10, 'lb'));
+    $package_type->getRemoteId()->willReturn('custom');
+
+    $shipment->getPackageType()->willReturn($package_type);
 
     // Return the mocked shipment object.
     return $shipment->reveal();
@@ -138,6 +149,7 @@ abstract class CanadaPostUnitTestBase extends UnitTestCase {
    */
   public function mockShippingMethod() {
     $shipping_method = $this->prophesize(CanadaPost::class);
+    $parent_shipping_method = $this->prophesize((ShippingMethodInterface::class));
     $package_type = $this->prophesize(PackageTypeInterface::class);
     $package_type->getHeight()->willReturn(new Length(10, 'in'));
     $package_type->getLength()->willReturn(new Length(10, 'in'));
@@ -152,6 +164,10 @@ abstract class CanadaPostUnitTestBase extends UnitTestCase {
         'origin_postal_code' => 'V1X5V1',
       ],
     ]);
+
+    $parent_shipping_method->id()->willReturn('1');
+    $shipping_method->getParentEntity()->willReturn($parent_shipping_method);
+
 
     return $shipping_method->reveal();
   }

@@ -10,7 +10,7 @@
         "source": "http://cgit.drupalcode.org/commerce_canadapost"
     },
     "require": {
-        "drupal/commerce_shipping": "^2.0@rc",
+        "drupal/commerce_shipping": "^8.2",
         "openlss/lib-array2xml": "^0.5.1",
         "darrylri/canadapost-api": "^0.2.4"
     },

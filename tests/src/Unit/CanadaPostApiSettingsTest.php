@@ -3,7 +3,6 @@
 namespace Drupal\Tests\commerce_canadapost\Unit;
 
 use Drupal\commerce_canadapost\UtilitiesService;
-
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**

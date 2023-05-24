@@ -10,6 +10,8 @@ use Drupal\commerce_shipping\ShippingService;
 
 use CanadaPost\Exception\ClientException;
 use CanadaPost\Rating;
+use CanadaPost\Dimension;
+use Drupal\physical\LengthUnit;
 
 /**
  * Provides the default Rating API integration services.
@@ -22,6 +24,10 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
   public function getRates(ShippingMethodInterface $shipping_method, ShipmentInterface $shipment, array $options) {
     $order = $shipment->getOrder();
     $store = $order->getStore();
+
+    // Set the necessary info needed for the request.
+    $this->setShipment($shipment);
+    $this->setShippingMethod($shipping_method);
 
     // Fetch the Canada Post API settings first.
     $api_settings = $this->getApiSettings($store, $shipping_method);
@@ -36,6 +42,16 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
       ->first()
       ->getPostalCode();
     $weight = $shipment->getWeight()->convert('kg')->getNumber();
+    $package = $shipment->getPackageType() ?: $shipping_method->getDefaultPackageType();
+    if ($package) {
+      $dimension = new Dimension(
+        (int) $package->getLength()->convert('mm')->getNumber(),
+        (int) $package->getWidth()->convert('mm')->getNumber(),
+        (int) $package->getHeight()->convert('mm')->getNumber()
+      );
+    } else {
+      $dimension = null;
+    }
 
     try {
       // Turn on output buffering if we are in test mode.
@@ -45,7 +61,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
       }
 
       $rating = $this->getRequest($api_settings);
-      $response = $rating->getRates($origin_postal_code, $postal_code, $weight, $options);
+      $response = $rating->getRates($origin_postal_code, $postal_code, $weight, $dimension, $options);
 
       if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
         $response_output = var_export($response, TRUE);
