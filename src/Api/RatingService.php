@@ -43,6 +43,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
       ->getPostalCode();
     $weight = $shipment->getWeight()->convert('kg')->getNumber();
     $package = $shipment->getPackageType() ?: $shipping_method->getDefaultPackageType();
+/*
     if ($package) {
       $dimension = new Dimension(
         (int) $package->getLength()->convert('mm')->getNumber(),
@@ -52,6 +53,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
     } else {
       $dimension = null;
     }
+*/
 
     try {
       // Turn on output buffering if we are in test mode.
@@ -59,9 +61,11 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
       if ($test_mode) {
         ob_start();
       }
-
       $rating = $this->getRequest($api_settings);
-      $response = $rating->getRates($origin_postal_code, $postal_code, $weight, $dimension, $options);
+
+      //$response = $rating->getRates($origin_postal_code, $postal_code, $weight, $dimensions, $options);
+
+      $response = $rating->getRates($origin_postal_code, $postal_code, $weight, $options);
 
       if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
         $response_output = var_export($response, TRUE);
