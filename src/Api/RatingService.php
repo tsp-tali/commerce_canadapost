@@ -128,7 +128,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
    * @return \Drupal\commerce_shipping\ShippingRate[]
    *   The Canada Post shipping rates.
    */
-  private function parseResponse(array $response) {
+  protected function parseResponse(array $response) {
     if (empty($response['price-quotes'])) {
       return [];
     }
