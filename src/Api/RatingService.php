@@ -77,7 +77,7 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
         $this->logger->info($message);
       }
 
-      $response = $this->parseResponse($response);
+      $response = $this->parseResponse($response, $shipping_method->getShippingMethodID());
     }
     catch (ClientException $exception) {
       if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
@@ -125,10 +125,13 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
    * @param array $response
    *   The response from the Canada Post API Rating service.
    *
+   * @param int $shipping_method_id
+   *   The shipping method id
+   *
    * @return \Drupal\commerce_shipping\ShippingRate[]
    *   The Canada Post shipping rates.
    */
-  protected function parseResponse(array $response) {
+  protected function parseResponse(array $response, int $shipping_method_id) {
     if (empty($response['price-quotes'])) {
       return [];
     }
@@ -143,10 +146,11 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
         $service_code,
         $service_name
       );
-      $rates[] = new ShippingRate(
-        $service_code,
-        $shipping_service,
-        $price
+        $rates[] = new ShippingRate( [
+            'shipping_method_id' => $shipping_method_id,
+            'service' => $shipping_service,
+            'amount' => $price
+            ]
       );
     }
 

@@ -258,5 +258,13 @@ class CanadaPost extends ShippingMethodBase {
       ]
     );
   }
-
+  /**
+   * Grabs the id from the parent entity
+   *
+   * @return int
+   *   The entity ID of the parent shipping method entity
+   */
+  public function getShippingMethodID() {
+      return $this->parentEntity->id();
+  }
 }
