@@ -1,5 +1,5 @@
 {
-    "name": "darrylri/commerce_canadapost",
+    "name": "tsp-tali/commerce_canadapost",
     "type": "drupal-module",
     "description": "A Drupal 8 module providing integration features with Canada Post and Commerce.",
     "keywords": ["Drupal"],
