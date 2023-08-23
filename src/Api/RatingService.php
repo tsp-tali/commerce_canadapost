@@ -70,8 +70,6 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
             }
             $rating = $this->getRequest($api_settings);
 
-            //$response = $rating->getRates($origin_postal_code, $postal_code, $weight, $dimensions, $options);
-
             $response = $rating->getRates($origin_postal_code, $postal_code, $countryCode, $weight, $dimensions, $shipping_date, $options);
 
             if (isset($api_settings['log']['request']) && $api_settings['log']['request']) {
