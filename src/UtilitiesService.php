@@ -211,7 +211,11 @@ class UtilitiesService {
       $shipment_query->condition('order_id', $order_ids, 'IN');
     }
     // Fetch the results.
+<<<<<<< HEAD
     $shipment_ids = $shipment_query->accessCheck(TRUE)->execute();
+=======
+    $shipment_ids = $shipment_query->accessCheck()->execute();
+>>>>>>> 6e63fb8fcb461db7bdfe925405a22d846373575a
 
     // Return the loaded shipment entities.
     return $this->entityTypeManager

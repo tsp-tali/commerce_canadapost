@@ -22,6 +22,14 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
      * {@inheritdoc}
      */
     public function getRates(ShippingMethodInterface $shipping_method, ShipmentInterface $shipment, array $options) {
+        $countryCode = $shipment->getShippingProfile()
+            ->get('address')
+            ->first()
+            ->getCountryCode();
+        if ($countryCode !== 'CA') {
+          return [];
+        }
+
         $order = $shipment->getOrder();
         $store = $order->getStore();
 
@@ -41,10 +49,6 @@ class RatingService extends RequestServiceBase implements RatingServiceInterface
             ->get('address')
             ->first()
             ->getPostalCode();
-        $countryCode = $shipment->getShippingProfile()
-            ->get('address')
-            ->first()
-            ->getCountryCode();
         $weight = $shipment->getWeight()->convert('kg')->getNumber();
         $package = $shipment->getPackageType() ?: $shipping_method->getDefaultPackageType();
         $shipping_date = $this->getShippingDate();
